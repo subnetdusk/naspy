@@ -29,7 +29,6 @@ col1, col2 = st.columns(spec=[1.5, 2], gap="large")
 with col1:
     st.subheader("1. Inserisci i dati per il calcolo")
 
-    # --- Input reattivo per la data ---
     data_inizio_naspi = st.date_input(
         label="Seleziona la data di decorrenza della NASpI",
         value=date.today(),
@@ -40,7 +39,6 @@ with col1:
     fine_periodo = data_inizio_naspi
     inizio_periodo = fine_periodo - relativedelta(years=4)
     
-    # --- Inizio del form ---
     with st.form("calcolo_form"):
         start_str = inizio_periodo.strftime('%d/%m/%Y')
         end_str = fine_periodo.strftime('%d/%m/%Y')
@@ -53,18 +51,14 @@ with col1:
         valori_default = [0.0, 0.0, 21000.0, 22000.0, 11000.0]
 
         for i, anno in enumerate(anni_coinvolti):
-            # --- LOGICA ETICHETTA SEMPLIFICATA ---
-            # Mostriamo l'etichetta dettagliata solo per il primo anno del periodo.
             if anno == inizio_periodo.year:
                 data_fine_anno = date(anno, 12, 31)
                 etichetta = f"Retribuzione dal {inizio_periodo.strftime('%d/%m/%Y')} al {data_fine_anno.strftime('%d/%m/%Y')}"
             else:
                 etichetta = f"Retribuzione percepita nell'anno {anno}"
             
-            # Assegnamo un valore di default
             default_val = valori_default[i] if i < len(valori_default) else 0.0
             
-            # Per l'ultimo anno (parziale), aggiungiamo un testo di aiuto specifico
             help_text_ultimo_anno = ""
             if anno == fine_periodo.year and anno != inizio_periodo.year:
                 help_text_ultimo_anno = f"Inserire la retribuzione fino al {fine_periodo.strftime('%d/%m/%Y')}."
@@ -74,7 +68,7 @@ with col1:
                 min_value=0.0,
                 value=default_val,
                 step=100.0,
-                key=f"ral_{anno}", # Key unica per stabilità
+                key=f"ral_{anno}",
                 help=help_text_ultimo_anno
             )
             lista_ral.append(ral_input)
@@ -99,7 +93,6 @@ with col1:
             type="primary",
         )
 
-    # --- Guide e Approfondimenti ---
     st.subheader("Approfondimenti")
     with st.expander("Guida alla compilazione dei dati"):
         st.markdown(get_guida_input())
@@ -141,24 +134,53 @@ with col2:
             
             st.markdown("---")
             
-            piano_ammortamento = calcola_piano_decalage(
+            # --- SEZIONE DATI E GRAFICO MODIFICATA ---
+            
+            piano_lordo = calcola_piano_decalage(
                 risultato["importo_mensile_lordo"],
                 risultato["durata_mesi"],
                 user_input_data["over_55"],
             )
             
-            df_piano = pd.DataFrame({"Mese": range(1, len(piano_ammortamento) + 1), "Importo Lordo Mensile (€)": piano_ammortamento})
+            # 1. Calcoliamo la serie di dati netti
+            tassazione = 0.15
+            piano_netto = [round(lordo * (1 - tassazione), 2) for lordo in piano_lordo]
 
-            st.write("**Andamento dell'indennità nel tempo (Décalage)**")
+            # 2. Creiamo un DataFrame "wide" per la tabella
+            df_wide = pd.DataFrame({
+                "Mese": range(1, len(piano_lordo) + 1),
+                "Importo Lordo (€)": piano_lordo,
+                f"Importo Netto (stima -{tassazione:.0%})": piano_netto
+            })
             
-            fig = px.bar(data_frame=df_piano, x="Mese", y="Importo Lordo Mensile (€)", text_auto='.2f')
+            # 3. Trasformiamo il DataFrame in formato "long" per il grafico
+            df_long = df_wide.melt(id_vars=['Mese'], 
+                                   value_vars=df_wide.columns[1:], # Seleziona le colonne Lordo e Netto
+                                   var_name='Tipo Importo', 
+                                   value_name='Valore (€)')
+
+            st.write("**Andamento dell'indennità nel tempo (Lordo vs. Netto)**")
+            
+            # 4. Creiamo il grafico a barre raggruppate
+            fig = px.bar(
+                df_long,
+                x="Mese",
+                y="Valore (€)",
+                color="Tipo Importo",  # Crea gruppi basati su questa colonna
+                barmode='group',       # Imposta la modalità a "raggruppata"
+                text_auto='.2f',
+                color_discrete_map={   # Assegna i colori
+                     "Importo Lordo (€)": 'royalblue',
+                     f"Importo Netto (stima -{tassazione:.0%})": 'darkorange'
+                }
+            )
             
             fig.update_traces(textfont_size=12, textangle=0, textposition="outside", cliponaxis=False)
-            
             st.plotly_chart(fig, use_container_width=True)
             
+            # 5. Mostriamo la tabella con entrambi i valori nell'expander
             with st.expander("Mostra tabella dettagliata del piano di erogazione"):
-                st.dataframe(df_piano, hide_index=True, use_container_width=True)
+                st.dataframe(df_wide, hide_index=True, use_container_width=True)
     else:
         st.info("Compila i dati nel modulo a sinistra e premi il pulsante 'Calcola Stima NASpI'.")
 
