@@ -2,7 +2,7 @@
 
 import streamlit as st
 import pandas as pd
-from interfaccia import crea_sidebar_input
+from interfaccia import mostra_campi_input
 from calcolo import calcola_naspi, calcola_piano_decalage
 from testi import get_introduzione, get_guida_input, get_spiegazione_risultati
 
@@ -16,16 +16,26 @@ st.set_page_config(
 # --- TITOLO E INTRODUZIONE ---
 st.title("🎓 Calcolatore NASpI per Personale Scuola 2025")
 st.markdown(get_introduzione())
+st.markdown("---")
 
-# --- SIDEBAR CON INPUT ---
-st.sidebar.image("https://upload.wikimedia.org/wikipedia/commons/thumb/1/1b/Inps_logo.svg/1200px-Inps_logo.svg.png", width=100)
-user_input = crea_sidebar_input()
+# --- LAYOUT PRINCIPALE A DUE COLONNE ---
+col1, col2 = st.columns(spec=[1.5, 2], gap="large")
 
-# --- AREA PRINCIPALE ---
-col1, col2 = st.columns((1, 1), gap="large")
-
+# --- COLONNA 1: INPUT E GUIDE ---
 with col1:
-    st.subheader("Guida e Riferimenti")
+    # Utilizziamo un form per raggruppare gli input e il pulsante di calcolo
+    with st.form("calcolo_form"):
+        user_input = mostra_campi_input()
+        
+        # Pulsante di submit del form
+        submitted = st.form_submit_button(
+            "Calcola Stima NASpI", 
+            use_container_width=True, 
+            type="primary"
+        )
+
+    # Guide e riferimenti normativi posizionati sotto il form
+    st.subheader("Approfondimenti")
     with st.expander("Guida alla compilazione dei dati"):
         st.markdown(get_guida_input())
     
@@ -33,22 +43,21 @@ with col1:
         st.markdown(get_spiegazione_risultati())
         st.info(
             "**Nota Bene**: I valori di riferimento per il calcolo (massimale e soglia) sono basati sugli importi "
-            "del 2024 e verranno aggiornati con le circolari INPS per il 2025 non appena disponibili. "
-            "Il calcolo è da intendersi come una stima."
+            "del 2024 e verranno aggiornati con le circolari INPS per il 2025 non appena disponibili."
         )
 
-
+# --- COLONNA 2: RISULTATI ---
 with col2:
-    st.subheader("Risultato del Calcolo")
-    
-    if user_input["calcola"]:
-        # Esegui il calcolo
+    st.subheader("2. Visualizza il Risultato")
+
+    if submitted:
+        # Esegui il calcolo solo dopo aver premuto il pulsante
         risultato = calcola_naspi(user_input["retribuzione"], user_input["settimane"])
         
         if not risultato["requisiti_soddisfatti"]:
-            st.error(risultato["messaggio_errore"])
+            st.error(f"**Requisiti non soddisfatti.**\n\n{risultato['messaggio_errore']}")
         else:
-            st.success("Requisiti per la NASpI soddisfatti!")
+            st.success("**Stima calcolata con successo!**")
             
             # Visualizzazione metriche principali
             m1, m2 = st.columns(2)
@@ -75,17 +84,15 @@ with col2:
                 "Importo Lordo Mensile (€)": piano_ammortamento
             })
 
-            st.write("**Piano di Erogazione Mensile (con décalage)**")
-            st.dataframe(df_piano, hide_index=True)
-
-            # Grafico dell'andamento
-            st.write("**Andamento dell'indennità nel tempo**")
-            st.line_chart(df_piano.set_index("Mese"))
+            st.write("**Andamento dell'indennità nel tempo (Décalage)**")
+            st.line_chart(df_piano.set_index("Mese"), use_container_width=True)
+            
+            with st.expander("Mostra tabella dettagliata del piano di erogazione"):
+                st.dataframe(df_piano, hide_index=True, use_container_width=True)
 
     else:
-        st.info("Inserisci i dati nella barra laterale e premi 'Calcola NASpI' per visualizzare i risultati.")
-
+        st.info("Compila i dati nel modulo a sinistra e premi il pulsante 'Calcola Stima NASpI' per visualizzare il risultato.")
 
 # --- FOOTER ---
 st.markdown("---")
-st.markdown("Realizzato per il repository 'naspy' - Progetto di esempio Streamlit.")
+st.markdown("<div style='text-align: center;'>Realizzato per il repository 'naspy' - Progetto di esempio Streamlit.</div>", unsafe_allow_html=True)
