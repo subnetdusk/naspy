@@ -6,12 +6,10 @@ import math
 IMPORTO_RIFERIMENTO_MENSILE = 1425.21
 MASSIMALE_MENSILE = 1550.42
 COEFFICIENTE_SETTIMANALE = 4.33
-GIORNI_PER_MESE_COMMERCIALE = 30
 
 def calcola_naspi(lista_ral: list, settimane_contributive: int):
     """
-    Calcola l'importo mensile lordo e la durata della NASpI.
-    Restituisce anche la durata totale in giorni per il calcolo del décalage.
+    Calcola l'importo mensile lordo e la durata decimale in mesi della NASpI.
     """
     
     if settimane_contributive < 13:
@@ -35,16 +33,14 @@ def calcola_naspi(lista_ral: list, settimane_contributive: int):
     durata_settimane = min(durata_settimane, 104)
     
     # --- MODIFICA ---
-    # Calcoliamo e restituiamo sia la durata in mesi (per stima) sia quella in giorni (per calcolo preciso)
-    durata_mesi_stimata = round(durata_settimane / COEFFICIENTE_SETTIMANALE, 1)
-    giorni_totali_diritto = durata_settimane * 7
+    # Calcoliamo e restituiamo la durata precisa in mesi decimali
+    durata_mesi_decimale = durata_settimane / COEFFICIENTE_SETTIMANALE
 
     return {
         "retribuzione_riferimento_calcolata": round(retribuzione_riferimento, 2),
         "importo_mensile_lordo": round(importo_mensile_lordo, 2),
-        "durata_mesi": durata_mesi_stimata, # Mantenuto per la metrica UI
         "durata_settimane": durata_settimane,
-        "giorni_totali_diritto": giorni_totali_diritto, # Nuovo, per il calcolo preciso
+        "durata_mesi_decimale": durata_mesi_decimale, # Nuovo, per il calcolo preciso del piano
         "requisiti_soddisfatti": True,
         "messaggio_errore": None
     }
@@ -57,35 +53,30 @@ def calcola_retribuzione_riferimento(lista_ral: list, settimane_contributive: in
     retribuzione_settimanale_media = totale_retribuzioni / settimane_contributive
     return retribuzione_settimanale_media * COEFFICIENTE_SETTIMANALE
 
-def calcola_piano_decalage(importo_mensile_iniziale: float, giorni_totali_diritto: int, over_55: bool):
+def calcola_piano_decalage(importo_mensile_iniziale: float, durata_mesi_decimale: float, over_55: bool):
     """
-    --- FUNZIONE COMPLETAMENTE RISCRITTA ---
-    Calcola il piano di ammortamento mensile su base giornaliera, gestendo la rata finale parziale.
+    --- FUNZIONE RISCRITTA SECONDO LA NUOVA LOGICA ---
+    Calcola il piano di ammortamento usando i mesi decimali.
     """
     piano = []
-    giorni_rimanenti = giorni_totali_diritto
-    importo_mensile_corrente = importo_mensile_iniziale
-    mese_corrente = 1
+    # Arrotondiamo il numero di rate al numero intero superiore
+    numero_rate_totali = math.ceil(durata_mesi_decimale)
+    durata_residua_mesi = durata_mesi_decimale
+    importo_mensile_base = importo_mensile_iniziale
     mese_inizio_decalage = 8 if over_55 else 6
 
-    while giorni_rimanenti > 0:
-        # Applica il décalage all'importo mensile di riferimento per il mese corrente
+    for mese_corrente in range(1, numero_rate_totali + 1):
+        # Applica il décalage se necessario
+        importo_mensile_con_decalage = importo_mensile_base
         if mese_corrente >= mese_inizio_decalage:
-            importo_mensile_corrente = importo_mensile_iniziale * (0.97 ** (mese_corrente - mese_inizio_decalage + 1))
+            # La formula corretta del décalage progressivo
+            fattore_riduzione = 0.97 ** (mese_corrente - mese_inizio_decalage + 1)
+            importo_mensile_con_decalage *= fattore_riduzione
 
-        # Calcola l'importo giornaliero per il mese corrente
-        importo_giornaliero = importo_mensile_corrente / GIORNI_PER_MESE_COMMERCIALE
-        
-        # Determina quanti giorni pagare in questa rata
-        giorni_da_pagare_in_questo_mese = min(GIORNI_PER_MESE_COMMERCIALE, giorni_rimanenti)
-        
-        # Calcola l'importo della rata
-        importo_rata_corrente = importo_giornaliero * giorni_da_pagare_in_questo_mese
-        
-        piano.append(round(importo_rata_corrente, 2))
-        
-        # Aggiorna i contatori
-        giorni_rimanenti -= giorni_da_pagare_in_questo_mese
-        mese_corrente += 1
-        
-    return piano
+        # Calcola la rata per il mese corrente
+        if durata_residua_mesi >= 1:
+            importo_rata_corrente = importo_mensile_con_decalage
+            durata_residua_mesi -= 1
+        else:
+            # Ultima rata parziale
+            importo_rata_corrente = import
