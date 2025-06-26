@@ -1,4 +1,4 @@
-# Calcolatore NASpI Scuola (Naspy)
+# Naspy - Calcolatore NASpI Scuola
 
 Questo progetto, chiamato **Naspy**, è un'applicazione web realizzata con [Streamlit](https://streamlit.io/) per calcolare una **stima** dell'indennità di disoccupazione NASpI. È pensato specificamente per il personale del comparto Scuola (docenti e personale ATA) con contratti a tempo determinato.
 
