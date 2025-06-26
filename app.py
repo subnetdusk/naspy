@@ -3,6 +3,7 @@
 import streamlit as st
 import pandas as pd
 import plotly.express as px
+import plotly.graph_objects as go # --- NUOVA IMPORTAZIONE ---
 from datetime import date
 from dateutil.relativedelta import relativedelta
 
@@ -142,43 +143,53 @@ with col2:
                 user_input_data["over_55"],
             )
             
-            # 1. Calcoliamo la serie di dati netti
             tassazione = 0.15
             piano_netto = [round(lordo * (1 - tassazione), 2) for lordo in piano_lordo]
 
-            # 2. Creiamo un DataFrame "wide" per la tabella
             df_wide = pd.DataFrame({
                 "Mese": range(1, len(piano_lordo) + 1),
                 "Importo Lordo (€)": piano_lordo,
                 f"Importo Netto (stima -{tassazione:.0%})": piano_netto
             })
             
-            # 3. Trasformiamo il DataFrame in formato "long" per il grafico
-            df_long = df_wide.melt(id_vars=['Mese'], 
-                                   value_vars=df_wide.columns[1:], # Seleziona le colonne Lordo e Netto
-                                   var_name='Tipo Importo', 
-                                   value_name='Valore (€)')
-
             st.write("**Andamento dell'indennità nel tempo (Lordo vs. Netto)**")
             
-            # 4. Creiamo il grafico a barre raggruppate
-            fig = px.bar(
-                df_long,
-                x="Mese",
-                y="Valore (€)",
-                color="Tipo Importo",  # Crea gruppi basati su questa colonna
-                barmode='group',       # Imposta la modalità a "raggruppata"
-                text_auto='.2f',
-                color_discrete_map={   # Assegna i colori
-                     "Importo Lordo (€)": 'royalblue',
-                     f"Importo Netto (stima -{tassazione:.0%})": 'darkorange'
-                }
+            # 1. Creiamo una figura vuota con graph_objects
+            fig = go.Figure()
+
+            # 2. Aggiungiamo la traccia per le barre LORDE (blu, sotto)
+            fig.add_trace(go.Bar(
+                x=df_wide['Mese'],
+                y=df_wide['Importo Lordo (€)'],
+                name='Lordo',
+                marker_color='royalblue',
+                text=df_wide['Importo Lordo (€)'],
+                texttemplate='%{text:.2f}',
+                textposition='outside' # Mostra il valore lordo fuori dalla barra
+            ))
+
+            # 3. Aggiungiamo la traccia per le barre NETTE (arancioni, sopra)
+            fig.add_trace(go.Bar(
+                x=df_wide['Mese'],
+                y=df_wide[f"Importo Netto (stima -{tassazione:.0%})"],
+                name='Netto',
+                marker_color='darkorange',
+                text=df_wide[f"Importo Netto (stima -{tassazione:.0%})"],
+                texttemplate='%{text:.2f}',
+                textposition='inside', # Mostra il valore netto dentro la barra
+                insidetextanchor='middle'
+            ))
+
+            # 4. Impostiamo la modalità a 'overlay'
+            fig.update_layout(
+                barmode='overlay',
+                xaxis_title='Mese',
+                yaxis_title='Importo (€)',
+                legend_title_text='Tipo Importo'
             )
             
-            fig.update_traces(textfont_size=12, textangle=0, textposition="outside", cliponaxis=False)
             st.plotly_chart(fig, use_container_width=True)
             
-            # 5. Mostriamo la tabella con entrambi i valori nell'expander
             with st.expander("Mostra tabella dettagliata del piano di erogazione"):
                 st.dataframe(df_wide, hide_index=True, use_container_width=True)
     else:
