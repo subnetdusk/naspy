@@ -2,7 +2,7 @@
 
 import streamlit as st
 import pandas as pd
-import plotly.express as px  # Importiamo Plotly Express
+import plotly.express as px
 from interfaccia import crea_form_input
 from calcolo import calcola_naspi, calcola_piano_decalage
 from testi import get_introduzione, get_guida_input, get_spiegazione_risultati
@@ -24,11 +24,12 @@ col1, col2 = st.columns(spec=[1.5, 2], gap="large")
 
 # --- COLONNA 1: INPUT E GUIDE ---
 with col1:
-    user_input, submitted = crea_form_input()
+    # La funzione ora restituisce anche le date di inizio e fine periodo
+    user_input, submitted, inizio_periodo, fine_periodo = crea_form_input()
 
     st.subheader("Approfondimenti")
     with st.expander("Guida alla compilazione dei dati"):
-        st.markdown(get_guida_input())
+        st.markdown(get_guida_input()) # Questa guida verrà aggiornata nel file testi.py
     
     with st.expander("Come funziona il calcolo? (Riferimenti Normativi)"):
         st.markdown(get_spiegazione_risultati())
@@ -42,13 +43,14 @@ with col2:
     st.subheader("2. Visualizza il Risultato")
 
     if submitted:
+        # Mostriamo il periodo usato per il calcolo per massima trasparenza
+        st.success(f"**Stima calcolata per il periodo dal {inizio_periodo.strftime('%d/%m/%Y')} al {fine_periodo.strftime('%d/%m/%Y')}**")
+
         risultato = calcola_naspi(user_input["lista_ral"], user_input["settimane"])
         
         if not risultato["requisiti_soddisfatti"]:
             st.error(f"**Requisiti non soddisfatti.**\n\n{risultato['messaggio_errore']}")
         else:
-            st.success("**Stima calcolata con successo!**")
-            
             st.metric(
                 label="Retribuzione Mensile di Riferimento (calcolata)",
                 value=f"€ {risultato['retribuzione_riferimento_calcolata']:.2f}",
@@ -79,34 +81,10 @@ with col2:
                 "Importo Lordo Mensile (€)": piano_ammortamento
             })
 
-            # --- SEZIONE GRAFICO AGGIORNATA ---
             st.write("**Andamento dell'indennità nel tempo (Décalage)**")
             
-            # 1. Creiamo la figura con Plotly Express
             fig = px.bar(
-                df_piano,
-                x="Mese",
-                y="Importo Lordo Mensile (€)",
-                text_auto='.2f',  # Aggiunge il testo su ogni barra, formattato a 2 decimali
-                title="" # Titolo già presente sopra
+                df_piano, x="Mese", y="Importo Lordo Mensile (€)", text_auto='.2f'
             )
-
-            # 2. Personalizziamo le etichette per posizionarle sopra le barre
             fig.update_traces(
-                textfont_size=12, 
-                textangle=0, 
-                textposition="outside", 
-                cliponaxis=False
-            )
-
-            # 3. Visualizziamo il grafico in Streamlit
-            st.plotly_chart(fig, use_container_width=True)
-            
-            with st.expander("Mostra tabella dettagliata del piano di erogazione"):
-                st.dataframe(df_piano, hide_index=True, use_container_width=True)
-    else:
-        st.info("Compila i dati nel modulo a sinistra e premi il pulsante 'Calcola Stima NASpI' per visualizzare il risultato.")
-
-# --- FOOTER ---
-st.markdown("---")
-st.markdown("<div style='text-align: center;'>Realizzato per il repository 'naspy' - Progetto di esempio Streamlit.</div>", unsafe_allow_html=True)
+                textfont_size=12, textangle=
