@@ -35,10 +35,15 @@ def crea_form_input():
             label=f"Terzo Anno ({anno_piu_recente - 1})", 
             min_value=0.0, value=0.0, step=100.0
         )
+        # --- MODIFICA ESEGUITA QUI ---
         ral_4 = st.number_input(
-            label=f"Quarto Anno (più recente) ({anno_piu_recente})", 
-            min_value=0.0, value=20000.0, step=100.0
+            label=f"Quarto Anno ({anno_piu_recente})", 
+            min_value=0.0, 
+            value=20000.0, 
+            step=100.0
         )
+        
+        lista_ral = [ral_1, ral_2, ral_3, ral_4]
         
         st.markdown("---")
 
