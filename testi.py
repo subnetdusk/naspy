@@ -1,11 +1,9 @@
 # testi.py
 
 def get_introduzione():
-    """Restituisce il testo introduttivo sulla NASpI."""
     return "Usa questo strumento per calcolare una stima accurata della tua indennità di disoccupazione NASpI basata sul quadriennio mobile."
 
 def get_guida_input():
-    """Restituisce la guida alla compilazione degli input."""
     return """
     ### Guida alla Compilazione
     
@@ -13,13 +11,12 @@ def get_guida_input():
     
     2.  **Retribuzione per Anno**: Inserisci la retribuzione lorda percepita per ciascun anno solare all'interno del periodo di riferimento calcolato.
         - **Anni Intermedi**: Inserisci la Retribuzione Annua Lorda (RAL) completa.
-        - **Primo e Ultimo Anno**: Questi sono spesso anni parziali. Segui attentamente le indicazioni sotto ogni campo per inserire solo la retribuzione percepita nei mesi di competenza.
+        - **Primo e Ultimo Anno**: Questi sono spesso anni parziali. Segui attentamente le indicazioni sull'etichetta di ogni campo per inserire solo la retribuzione percepita nei mesi di competenza.
         
     3.  **Totale Settimane di Contribuzione**: Inserisci il numero totale di settimane coperte da contribuzione all'interno dello stesso periodo di riferimento di 48 mesi. Il requisito minimo è di 13 settimane.
     """
 
 def get_spiegazione_risultati():
-    """Restituisce la spiegazione delle regole di calcolo applicate."""
     return """
     ### Come viene calcolato l'importo?
     
