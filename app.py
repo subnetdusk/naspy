@@ -2,6 +2,7 @@
 
 import streamlit as st
 import pandas as pd
+import plotly.express as px  # Importiamo Plotly Express
 from interfaccia import crea_form_input
 from calcolo import calcola_naspi, calcola_piano_decalage
 from testi import get_introduzione, get_guida_input, get_spiegazione_risultati
@@ -23,10 +24,8 @@ col1, col2 = st.columns(spec=[1.5, 2], gap="large")
 
 # --- COLONNA 1: INPUT E GUIDE ---
 with col1:
-    # La funzione crea il form e restituisce i dati e lo stato di invio
     user_input, submitted = crea_form_input()
 
-    # Le guide rimangono qui
     st.subheader("Approfondimenti")
     with st.expander("Guida alla compilazione dei dati"):
         st.markdown(get_guida_input())
@@ -43,7 +42,6 @@ with col2:
     st.subheader("2. Visualizza il Risultato")
 
     if submitted:
-        # Esegui il calcolo solo dopo aver premuto il pulsante
         risultato = calcola_naspi(user_input["lista_ral"], user_input["settimane"])
         
         if not risultato["requisiti_soddisfatti"]:
@@ -81,8 +79,28 @@ with col2:
                 "Importo Lordo Mensile (€)": piano_ammortamento
             })
 
+            # --- SEZIONE GRAFICO AGGIORNATA ---
             st.write("**Andamento dell'indennità nel tempo (Décalage)**")
-            st.line_chart(df_piano.set_index("Mese"), use_container_width=True)
+            
+            # 1. Creiamo la figura con Plotly Express
+            fig = px.bar(
+                df_piano,
+                x="Mese",
+                y="Importo Lordo Mensile (€)",
+                text_auto='.2f',  # Aggiunge il testo su ogni barra, formattato a 2 decimali
+                title="" # Titolo già presente sopra
+            )
+
+            # 2. Personalizziamo le etichette per posizionarle sopra le barre
+            fig.update_traces(
+                textfont_size=12, 
+                textangle=0, 
+                textposition="outside", 
+                cliponaxis=False
+            )
+
+            # 3. Visualizziamo il grafico in Streamlit
+            st.plotly_chart(fig, use_container_width=True)
             
             with st.expander("Mostra tabella dettagliata del piano di erogazione"):
                 st.dataframe(df_piano, hide_index=True, use_container_width=True)
