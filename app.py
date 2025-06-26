@@ -7,7 +7,6 @@ import plotly.graph_objects as go
 from datetime import date
 from dateutil.relativedelta import relativedelta
 
-# Le funzioni che non danno problemi rimangono nei loro file
 from calcolo import calcola_naspi, calcola_piano_decalage
 from testi import get_introduzione, get_guida_input, get_spiegazione_risultati
 
@@ -129,15 +128,21 @@ with col2:
             )
             st.markdown("---")
             
+            # --- Metrica Durata Aggiornata ---
+            durata_mesi_intera = int(risultato['durata_mesi_decimale'])
+            durata_giorni_frazione = round((risultato['durata_mesi_decimale'] - durata_mesi_intera) * 30)
+
             m1, m2 = st.columns(2)
             m1.metric(label="Indennità Mensile Lorda Iniziale", value=f"€ {risultato['importo_mensile_lordo']:.2f}")
-            m2.metric(label="Durata Massima", value=f"{risultato['durata_mesi']} mesi ({risultato['durata_settimane']} settimane)")
+            m2.metric(label="Durata Massima", value=f"{durata_mesi_intera} mesi e {durata_giorni_frazione} giorni", help=f"({risultato['durata_settimane']} settimane totali)")
             
             st.markdown("---")
             
+            # --- MODIFICA CHIAVE ---
+            # Passiamo i mesi decimali alla funzione
             piano_lordo = calcola_piano_decalage(
                 risultato["importo_mensile_lordo"],
-                risultato["durata_mesi"],
+                risultato["durata_mesi_decimale"],
                 user_input_data["over_55"],
             )
             
@@ -150,7 +155,7 @@ with col2:
                 f"Importo Netto (stima -{tassazione:.0%})": piano_netto
             })
             
-            st.write("**Andamento dell'indennità nel tempo (Lordo vs. Netto)**")
+            st.write("**Andamento dell'indennità nel tempo (Décalage)**")
             
             fig = go.Figure()
 
@@ -162,7 +167,7 @@ with col2:
                 text=df_wide['Importo Lordo (€)'],
                 texttemplate='%{text:.2f}',
                 textposition='outside',
-                textfont=dict(color='black') # Rendiamo il testo nero
+                textfont=dict(color='black')
             ))
 
             fig.add_trace(go.Bar(
@@ -176,10 +181,7 @@ with col2:
                 insidetextanchor='middle'
             ))
 
-            # --- MODIFICA ESEGUITA QUI ---
-            # 1. Calcoliamo il valore massimo sull'asse Y
             max_y_value = df_wide['Importo Lordo (€)'].max()
-            # 2. Aggiungiamo un 15% di "aria" per far spazio all'etichetta
             y_axis_upper_limit = max_y_value * 1.15 
 
             fig.update_layout(
@@ -187,7 +189,6 @@ with col2:
                 xaxis_title='Mese',
                 yaxis_title='Importo (€)',
                 legend_title_text='Tipo Importo',
-                # 3. Applichiamo il nuovo limite massimo all'asse Y
                 yaxis=dict(range=[0, y_axis_upper_limit]) 
             )
             
