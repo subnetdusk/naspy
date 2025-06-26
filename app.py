@@ -29,48 +29,49 @@ col1, col2 = st.columns(spec=[1.5, 2], gap="large")
 with col1:
     st.subheader("1. Inserisci i dati per il calcolo")
 
-    # --- SPOSTATO QUI FUORI DAL FORM ---
-    # Questo input ora è reattivo e aggiorna l'interfaccia a ogni modifica.
+    # --- Input reattivo per la data ---
     data_inizio_naspi = st.date_input(
         label="Seleziona la data di decorrenza della NASpI",
         value=date.today(),
         format="DD/MM/YYYY",
         help="È la data di inizio della disoccupazione.",
     )
-    # Calcoliamo il periodo qui, in modo che sia disponibile per il form sottostante
+    
     fine_periodo = data_inizio_naspi
     inizio_periodo = fine_periodo - relativedelta(years=4)
     
-    # --- IL FORM INIZIA DOPO L'INPUT DELLA DATA ---
+    # --- Inizio del form ---
     with st.form("calcolo_form"):
-        # Il testo informativo e gli input RAL ora si aggiornano dinamicamente
         start_str = inizio_periodo.strftime('%d/%m/%Y')
         end_str = fine_periodo.strftime('%d/%m/%Y')
 
         st.info(f"Periodo di riferimento (48 mesi): Dal **{start_str}** al **{end_str}**.")
-        st.write("Inserisci le retribuzioni lorde per ogni anno solare in questo intervallo.")
+        st.write("Inserisci le retribuzioni lorde per ogni intervallo di date specificato.")
         
         anni_coinvolti = list(range(inizio_periodo.year, fine_periodo.year + 1))
         lista_ral = []
         valori_default = [0.0, 0.0, 21000.0, 22000.0, 11000.0]
 
         for i, anno in enumerate(anni_coinvolti):
-            help_text = f"Inserire la RAL totale per l'anno {anno}."
-            if anno == inizio_periodo.year and anno != fine_periodo.year:
-                help_text = f"ATTENZIONE: Inserire solo la retribuzione da {inizio_periodo.strftime('%B %Y')} in poi."
-            elif anno == fine_periodo.year and anno != inizio_periodo.year:
-                 help_text = f"ATTENZIONE: Inserire solo la retribuzione fino a {fine_periodo.strftime('%B %Y')}."
-            elif anno == inizio_periodo.year and anno == fine_periodo.year:
-                help_text = f"ATTENZIONE: Inserire solo la retribuzione da {inizio_periodo.strftime('%B %Y')} a {fine_periodo.strftime('%B %Y')}."
+            # --- LOGICA PER ETICHETTE DINAMICHE ---
+            data_inizio_anno = date(anno, 1, 1)
+            data_fine_anno = date(anno, 12, 31)
 
+            # Determina l'inizio e la fine effettivi per l'etichetta
+            start_label_date = max(data_inizio_anno, inizio_periodo)
+            end_label_date = min(data_fine_anno, fine_periodo)
+
+            etichetta_intervallo = f"Retribuzione dal {start_label_date.strftime('%d/%m/%Y')} al {end_label_date.strftime('%d/%m/%Y')}"
+            
+            # Assegnamo un valore di default
             default_val = valori_default[i] if i < len(valori_default) else 0.0
+            
             ral_input = st.number_input(
-                label=f"Retribuzione percepita nell'anno {anno}",
+                label=etichetta_intervallo,
                 min_value=0.0,
                 value=default_val,
                 step=100.0,
-                help=help_text,
-                key=f"ral_{anno}" # Aggiungiamo una key unica per stabilità
+                key=f"ral_{anno}" # Key unica per stabilità
             )
             lista_ral.append(ral_input)
 
@@ -123,7 +124,6 @@ with col2:
         if not risultato["requisiti_soddisfatti"]:
             st.error(f"**Requisiti non soddisfatti.**\n\n{risultato['messaggio_errore']}")
         else:
-            # ... il resto del codice per visualizzare i risultati rimane identico ...
             st.metric(
                 label="Retribuzione Mensile di Riferimento (calcolata)",
                 value=f"€ {risultato['retribuzione_riferimento_calcolata']:.2f}",
