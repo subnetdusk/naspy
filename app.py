@@ -10,22 +10,18 @@ from dateutil.relativedelta import relativedelta
 from calcolo import calcola_naspi, calcola_piano_decalage
 from testi import get_introduzione, get_guida_input, get_spiegazione_risultati
 
-# --- IMPOSTAZIONI PAGINA ---
 st.set_page_config(
     page_title="Calcolatore NASpI Scuola 2025",
     page_icon="🎓",
     layout="wide",
 )
 
-# --- TITOLO E INTRODUZIONE ---
 st.title("🎓 Calcolatore NASpI per Personale Scuola 2025")
 st.markdown(get_introduzione())
 st.markdown("---")
 
-# --- LAYOUT PRINCIPALE A DUE COLONNE ---
 col1, col2 = st.columns(spec=[1.5, 2], gap="large")
 
-# --- COLONNA 1: INPUT E GUIDE ---
 with col1:
     st.subheader("1. Inserisci i dati per il calcolo")
 
@@ -104,18 +100,13 @@ with col1:
         "**Nota Bene**: I valori di riferimento sono basati sui dati più recenti e verranno aggiornati appena disponibili quelli per l'anno in corso."
     )
 
-# --- COLONNA 2: RISULTATI ---
 with col2:
     st.subheader("2. Visualizza il Risultato")
 
     if submitted:
         st.success(f"**Stima calcolata per il periodo dal {inizio_periodo.strftime('%d/%m/%Y')} al {fine_periodo.strftime('%d/%m/%Y')}**")
 
-        user_input_data = {
-            "lista_ral": lista_ral,
-            "settimane": settimane_contributive,
-            "over_55": over_55
-        }
+        user_input_data = {"lista_ral": lista_ral, "settimane": settimane_contributive, "over_55": over_55}
         risultato = calcola_naspi(user_input_data["lista_ral"], user_input_data["settimane"])
         
         if not risultato["requisiti_soddisfatti"]:
@@ -128,7 +119,6 @@ with col2:
             )
             st.markdown("---")
             
-            # --- Metrica Durata Aggiornata ---
             durata_mesi_intera = int(risultato['durata_mesi_decimale'])
             durata_giorni_frazione = round((risultato['durata_mesi_decimale'] - durata_mesi_intera) * 30)
 
@@ -138,8 +128,6 @@ with col2:
             
             st.markdown("---")
             
-            # --- MODIFICA CHIAVE ---
-            # Passiamo i mesi decimali alla funzione
             piano_lordo = calcola_piano_decalage(
                 risultato["importo_mensile_lordo"],
                 risultato["durata_mesi_decimale"],
@@ -149,48 +137,18 @@ with col2:
             tassazione = 0.15
             piano_netto = [round(lordo * (1 - tassazione), 2) for lordo in piano_lordo]
 
-            df_wide = pd.DataFrame({
-                "Mese": range(1, len(piano_lordo) + 1),
-                "Importo Lordo (€)": piano_lordo,
-                f"Importo Netto (stima -{tassazione:.0%})": piano_netto
-            })
+            df_wide = pd.DataFrame({"Mese": range(1, len(piano_lordo) + 1), "Importo Lordo (€)": piano_lordo, f"Importo Netto (stima -{tassazione:.0%})": piano_netto})
             
             st.write("**Andamento dell'indennità nel tempo (Décalage)**")
             
             fig = go.Figure()
-
-            fig.add_trace(go.Bar(
-                x=df_wide['Mese'],
-                y=df_wide['Importo Lordo (€)'],
-                name='Lordo',
-                marker_color='royalblue',
-                text=df_wide['Importo Lordo (€)'],
-                texttemplate='%{text:.2f}',
-                textposition='outside',
-                textfont=dict(color='black')
-            ))
-
-            fig.add_trace(go.Bar(
-                x=df_wide['Mese'],
-                y=df_wide[f"Importo Netto (stima -{tassazione:.0%})"],
-                name='Netto',
-                marker_color='darkorange',
-                text=df_wide[f"Importo Netto (stima -{tassazione:.0%})"],
-                texttemplate='%{text:.2f}',
-                textposition='inside',
-                insidetextanchor='middle'
-            ))
+            fig.add_trace(go.Bar(x=df_wide['Mese'], y=df_wide['Importo Lordo (€)'], name='Lordo', marker_color='royalblue', text=df_wide['Importo Lordo (€)'], texttemplate='%{text:.2f}', textposition='outside', textfont=dict(color='black')))
+            fig.add_trace(go.Bar(x=df_wide['Mese'], y=df_wide[f"Importo Netto (stima -{tassazione:.0%})"], name='Netto', marker_color='darkorange', text=df_wide[f"Importo Netto (stima -{tassazione:.0%})"], texttemplate='%{text:.2f}', textposition='inside', insidetextanchor='middle'))
 
             max_y_value = df_wide['Importo Lordo (€)'].max()
             y_axis_upper_limit = max_y_value * 1.15 
 
-            fig.update_layout(
-                barmode='overlay',
-                xaxis_title='Mese',
-                yaxis_title='Importo (€)',
-                legend_title_text='Tipo Importo',
-                yaxis=dict(range=[0, y_axis_upper_limit]) 
-            )
+            fig.update_layout(barmode='overlay', xaxis_title='Mese', yaxis_title='Importo (€)', legend_title_text='Tipo Importo', yaxis=dict(range=[0, y_axis_upper_limit]))
             
             st.plotly_chart(fig, use_container_width=True)
             
@@ -199,6 +157,5 @@ with col2:
     else:
         st.info("Compila i dati nel modulo a sinistra e premi il pulsante 'Calcola Stima NASpI'.")
 
-# --- FOOTER ---
 st.markdown("---")
 st.markdown("<div style='text-align: center;'>Realizzato per il repository 'naspy'.</div>", unsafe_allow_html=True)
