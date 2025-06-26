@@ -46,32 +46,36 @@ with col1:
         end_str = fine_periodo.strftime('%d/%m/%Y')
 
         st.info(f"Periodo di riferimento (48 mesi): Dal **{start_str}** al **{end_str}**.")
-        st.write("Inserisci le retribuzioni lorde per ogni intervallo di date specificato.")
+        st.write("Inserisci le retribuzioni lorde per ogni anno solare in questo intervallo.")
         
         anni_coinvolti = list(range(inizio_periodo.year, fine_periodo.year + 1))
         lista_ral = []
         valori_default = [0.0, 0.0, 21000.0, 22000.0, 11000.0]
 
         for i, anno in enumerate(anni_coinvolti):
-            # --- LOGICA PER ETICHETTE DINAMICHE ---
-            data_inizio_anno = date(anno, 1, 1)
-            data_fine_anno = date(anno, 12, 31)
-
-            # Determina l'inizio e la fine effettivi per l'etichetta
-            start_label_date = max(data_inizio_anno, inizio_periodo)
-            end_label_date = min(data_fine_anno, fine_periodo)
-
-            etichetta_intervallo = f"Retribuzione dal {start_label_date.strftime('%d/%m/%Y')} al {end_label_date.strftime('%d/%m/%Y')}"
+            # --- LOGICA ETICHETTA SEMPLIFICATA ---
+            # Mostriamo l'etichetta dettagliata solo per il primo anno del periodo.
+            if anno == inizio_periodo.year:
+                data_fine_anno = date(anno, 12, 31)
+                etichetta = f"Retribuzione dal {inizio_periodo.strftime('%d/%m/%Y')} al {data_fine_anno.strftime('%d/%m/%Y')}"
+            else:
+                etichetta = f"Retribuzione percepita nell'anno {anno}"
             
             # Assegnamo un valore di default
             default_val = valori_default[i] if i < len(valori_default) else 0.0
             
+            # Per l'ultimo anno (parziale), aggiungiamo un testo di aiuto specifico
+            help_text_ultimo_anno = ""
+            if anno == fine_periodo.year and anno != inizio_periodo.year:
+                help_text_ultimo_anno = f"Inserire la retribuzione fino al {fine_periodo.strftime('%d/%m/%Y')}."
+
             ral_input = st.number_input(
-                label=etichetta_intervallo,
+                label=etichetta,
                 min_value=0.0,
                 value=default_val,
                 step=100.0,
-                key=f"ral_{anno}" # Key unica per stabilità
+                key=f"ral_{anno}", # Key unica per stabilità
+                help=help_text_ultimo_anno
             )
             lista_ral.append(ral_input)
 
