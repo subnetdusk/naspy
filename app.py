@@ -23,18 +23,14 @@ col1, col2 = st.columns(spec=[1.5, 2], gap="large")
 
 # --- COLONNA 1: INPUT E GUIDE ---
 with col1:
-    # Utilizziamo un form per raggruppare gli input e il pulsante di calcolo
     with st.form("calcolo_form"):
         user_input = mostra_campi_input()
-        
-        # Pulsante di submit del form
         submitted = st.form_submit_button(
             "Calcola Stima NASpI", 
             use_container_width=True, 
             type="primary"
         )
 
-    # Guide e riferimenti normativi posizionati sotto il form
     st.subheader("Approfondimenti")
     with st.expander("Guida alla compilazione dei dati"):
         st.markdown(get_guida_input())
@@ -51,13 +47,21 @@ with col2:
     st.subheader("2. Visualizza il Risultato")
 
     if submitted:
-        # Esegui il calcolo solo dopo aver premuto il pulsante
-        risultato = calcola_naspi(user_input["retribuzione"], user_input["settimane"])
+        # Passiamo la lista delle RAL e le settimane alla funzione di calcolo
+        risultato = calcola_naspi(user_input["lista_ral"], user_input["settimane"])
         
         if not risultato["requisiti_soddisfatti"]:
             st.error(f"**Requisiti non soddisfatti.**\n\n{risultato['messaggio_errore']}")
         else:
             st.success("**Stima calcolata con successo!**")
+
+            # MOSTRA LA RETRIBUZIONE DI RIFERIMENTO CALCOLATA
+            st.metric(
+                label="Retribuzione Mensile di Riferimento (calcolata)",
+                value=f"€ {risultato['retribuzione_riferimento_calcolata']:.2f}",
+                help="Questa è la retribuzione media mensile, calcolata sulla base dei dati inseriti, che viene usata come base per il calcolo dell'indennità."
+            )
+            st.markdown("---")
             
             # Visualizzazione metriche principali
             m1, m2 = st.columns(2)
