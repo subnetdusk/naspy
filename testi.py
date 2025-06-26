@@ -2,28 +2,18 @@
 
 def get_introduzione():
     """Restituisce il testo introduttivo sulla NASpI."""
-    return """
-    La Nuova Assicurazione Sociale per l'Impiego (NASpI), istituita dal Decreto Legislativo 4 marzo 2015, n. 22, 
-    rappresenta il principale strumento di sostegno al reddito per i lavoratori con rapporto di lavoro subordinato 
-    che perdono involontariamente la propria occupazione. 
-    
-    Per il personale del comparto Scuola, in particolare per docenti e personale Amministrativo, Tecnico e 
-    Ausiliario (ATA) con contratti a tempo determinato, la NASpI costituisce un presidio di continuità reddituale 
-    di fondamentale importanza, specialmente durante i periodi di interruzione dell'attività lavorativa, 
-    tipicamente coincidenti con i mesi estivi.
-
-    Questo strumento calcola una **stima** dell'indennità NASpI basata sui dati inseriti. 
-    I valori sono da considerarsi puramente indicativi.
-    """
+    # Il testo precedente è stato rimosso come richiesto.
+    # Puoi lasciare una stringa vuota o una frase più concisa.
+    return "Usa questo strumento per calcolare una stima della tua indennità di disoccupazione NASpI."
 
 def get_guida_input():
     """Restituisce la guida alla compilazione degli input."""
     return """
     ### Guida alla Compilazione
     
-    1.  **Retribuzione Media Mensile Imponibile (€)**: Inserisci la retribuzione media lorda mensile soggetta a contribuzione INPS degli ultimi 4 anni. Questo valore è solitamente indicato nel flusso UNIEMENS del datore di lavoro. Per il personale scolastico, si può fare riferimento alla retribuzione tabellare lorda mensile.
+    1.  **Retribuzione Annua Lorda (RAL)**: Inserisci la retribuzione lorda totale percepita in ciascuno degli ultimi quattro anni solari. Se in un anno non hai lavorato o non hai avuto reddito da lavoro dipendente, lascia il valore a 0.
     
-    2.  **Settimane di Contribuzione negli Ultimi 4 Anni**: Indica il numero totale di settimane per cui sono stati versati contributi previdenziali nei 48 mesi che precedono la data di cessazione del rapporto di lavoro. Il requisito minimo per accedere alla NASpI è di 13 settimane.
+    2.  **Totale Settimane di Contribuzione**: Indica il numero totale di settimane per cui sono stati versati contributi previdenziali nei 48 mesi che precedono la data di cessazione del rapporto di lavoro. Il requisito minimo per accedere alla NASpI è di 13 settimane.
     """
 
 def get_spiegazione_risultati():
@@ -33,7 +23,7 @@ def get_spiegazione_risultati():
     
     L'importo mensile della NASpI si calcola nel seguente modo:
     
-    * **Retribuzione di Riferimento**: Si calcola la retribuzione imponibile previdenziale degli ultimi 4 anni e la si divide per il numero di settimane di contribuzione. Il risultato viene moltiplicato per il coefficiente **4,33**.
+    * **Retribuzione di Riferimento**: Si calcola la retribuzione imponibile previdenziale totale degli ultimi 4 anni e la si divide per il numero di settimane di contribuzione. Il risultato viene moltiplicato per il coefficiente **4,33**.
     
     * **Calcolo dell'Indennità**:
         * Se la retribuzione di riferimento è **pari o inferiore** a un importo di riferimento stabilito annualmente dall'INPS (per il 2025, si utilizza il dato più aggiornato disponibile, qui stimato a €1.425,21), l'indennità è pari al **75%** di tale retribuzione.
