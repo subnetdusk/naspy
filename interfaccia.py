@@ -16,31 +16,37 @@ def crea_form_input():
     with st.form("calcolo_form"):
         st.subheader("1. Inserisci i dati per il calcolo")
         
-        st.write("Inserisci la **Retribuzione Annua Lorda (RAL)** per ciascuno degli ultimi quattro anni. Se un anno non è stato lavorato, lascia il valore a 0.")
+        st.write("""
+        Inserisci la **Retribuzione Annua Lorda (RAL)** per ciascuno degli ultimi quattro anni.
+        - Per l'**anno in corso**, inserisci la retribuzione percepita fino alla data di fine contratto.
+        - Se un anno non è stato lavorato, lascia il valore a 0.
+        """)
         
-        # Calcola dinamicamente gli anni di riferimento
+        # --- LOGICA DEGLI ANNI CORRETTA ---
+        # L'ultimo anno di riferimento è l'anno corrente.
         anno_corrente = date.today().year
-        anno_piu_recente = anno_corrente - 1
         
         # Creiamo i 4 box di input per le RAL in ordine cronologico
         ral_1 = st.number_input(
-            label=f"Primo Anno ({anno_piu_recente - 3})", 
+            label=f"Primo Anno ({anno_corrente - 3})", 
             min_value=0.0, value=0.0, step=100.0
         )
         ral_2 = st.number_input(
-            label=f"Secondo Anno ({anno_piu_recente - 2})", 
+            label=f"Secondo Anno ({anno_corrente - 2})", 
             min_value=0.0, value=0.0, step=100.0
         )
         ral_3 = st.number_input(
-            label=f"Terzo Anno ({anno_piu_recente - 1})", 
-            min_value=0.0, value=0.0, step=100.0
-        )
-        # --- MODIFICA ESEGUITA QUI ---
-        ral_4 = st.number_input(
-            label=f"Quarto Anno ({anno_piu_recente})", 
+            label=f"Terzo Anno ({anno_corrente - 1})", 
             min_value=0.0, 
-            value=20000.0, 
+            value=20000.0, # Impostiamo un default per l'anno precedente
             step=100.0
+        )
+        ral_4 = st.number_input(
+            label=f"Quarto Anno ({anno_corrente})", 
+            min_value=0.0, 
+            value=10000.0, # Impostiamo un default per l'anno in corso (retribuzione parziale)
+            step=100.0,
+            help="Inserisci la retribuzione lorda percepita quest'anno fino alla fine del contratto."
         )
         
         lista_ral = [ral_1, ral_2, ral_3, ral_4]
@@ -67,9 +73,4 @@ def crea_form_input():
         )
         
         dati_input = {
-            "lista_ral": [ral_1, ral_2, ral_3, ral_4],
-            "settimane": settimane_contributive,
-            "over_55": over_55
-        }
-
-    return dati_input, submitted
+            "
