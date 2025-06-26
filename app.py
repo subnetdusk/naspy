@@ -10,18 +10,22 @@ from dateutil.relativedelta import relativedelta
 from calcolo import calcola_naspi, calcola_piano_decalage
 from testi import get_introduzione, get_guida_input, get_spiegazione_risultati
 
+# --- IMPOSTAZIONI PAGINA ---
 st.set_page_config(
     page_title="Calcolatore NASpI Scuola 2025",
     page_icon="🎓",
     layout="wide",
 )
 
+# --- TITOLO E INTRODUZIONE ---
 st.title("🎓 Calcolatore NASpI per Personale Scuola 2025")
 st.markdown(get_introduzione())
 st.markdown("---")
 
+# --- LAYOUT PRINCIPALE A DUE COLONNE ---
 col1, col2 = st.columns(spec=[1.5, 2], gap="large")
 
+# --- COLONNA 1: INPUT E GUIDE ---
 with col1:
     st.subheader("1. Inserisci i dati per il calcolo")
 
@@ -100,6 +104,7 @@ with col1:
         "**Nota Bene**: I valori di riferimento sono basati sui dati più recenti e verranno aggiornati appena disponibili quelli per l'anno in corso."
     )
 
+# --- COLONNA 2: RISULTATI ---
 with col2:
     st.subheader("2. Visualizza il Risultato")
 
@@ -136,7 +141,22 @@ with col2:
             
             tassazione = 0.15
             piano_netto = [round(lordo * (1 - tassazione), 2) for lordo in piano_lordo]
+            
+            # --- NUOVA SEZIONE INSERITA QUI ---
+            
+            # 1. Calcoliamo i totali
+            totale_lordo = sum(piano_lordo)
+            totale_netto = sum(piano_netto)
 
+            # 2. Mostriamo la sottosezione con i totali
+            st.write("**Riepilogo Importi Totali Erogati**")
+            m3, m4 = st.columns(2)
+            m3.metric(label="Importo Totale Lordo", value=f"€ {totale_lordo:,.2f}".replace(",", "X").replace(".", ",").replace("X", "."))
+            m4.metric(label=f"Importo Totale Netto (stima -{tassazione:.0%})", value=f"€ {totale_netto:,.2f}".replace(",", "X").replace(".", ",").replace("X", "."))
+            st.markdown("---")
+
+
+            # --- SEZIONE GRAFICO E TABELLA (invariata) ---
             df_wide = pd.DataFrame({"Mese": range(1, len(piano_lordo) + 1), "Importo Lordo (€)": piano_lordo, f"Importo Netto (stima -{tassazione:.0%})": piano_netto})
             
             st.write("**Andamento dell'indennità nel tempo (Décalage)**")
@@ -157,5 +177,6 @@ with col2:
     else:
         st.info("Compila i dati nel modulo a sinistra e premi il pulsante 'Calcola Stima NASpI'.")
 
+# --- FOOTER ---
 st.markdown("---")
 st.markdown("<div style='text-align: center;'>Realizzato per il repository 'naspy'.</div>", unsafe_allow_html=True)
