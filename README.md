@@ -1,6 +1,6 @@
 # Naspy - [Calcolatore NASpI](https://calcolatore-naspi.streamlit.app/)
 
-Questo progetto, chiamato **Naspy**, è un'applicazione web realizzata con [Streamlit](https://calcolatore-naspi.streamlit.app/) per calcolare una **stima** dell'indennità di disoccupazione NASpI. 
+Questo progetto, chiamato **Naspy**, è un'applicazione web realizzata con [Streamlit](https://calcolatore-naspi.streamlit.app/) per calcolare una _**stima**_ dell'indennità di disoccupazione NASpI. 
 
 
 ##  Come Iniziare
