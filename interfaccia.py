@@ -2,85 +2,46 @@
 
 import streamlit as st
 from datetime import date
+from dateutil.relativedelta import relativedelta # Dobbiamo importare questa utilità
 
 def crea_form_input():
     """
-    Crea un form, mostra i widget per l'inserimento dati, e restituisce
-    i dati e lo stato del pulsante.
-
-    Returns:
-        tuple: (dict_dati, bool_inviato)
-               - dict_dati: dizionario con i valori del form.
-               - bool_inviato: True se il form è stato inviato, altrimenti False.
+    Crea un form che chiede la data di inizio disoccupazione e 5 RAL parziali/totali,
+    e restituisce i dati e lo stato del pulsante.
     """
     with st.form("calcolo_form"):
         st.subheader("1. Inserisci i dati per il calcolo")
         
-        st.write("""
-        Inserisci la **Retribuzione Annua Lorda (RAL)** per ciascuno degli ultimi quattro anni.
-        - Per l'**anno in corso**, inserisci la retribuzione percepita fino alla data di fine contratto.
-        - Se durante un anno non hai lavorato, lascia il valore a 0.
-        """)
-        
-        anno_corrente = date.today().year
-        
-        ral_1 = st.number_input(
-            label=f"Primo Anno ({anno_corrente - 3})", 
-            min_value=0.0, 
-            value=0.0, 
-            step=100.0
+        # --- NUOVO: INPUT DATA ---
+        data_inizio_naspi = st.date_input(
+            "Seleziona la data di decorrenza della NASpI",
+            value=date.today(),
+            min_value=date(2020, 1, 1),
+            max_value=date.today().replace(year=date.today().year + 1),
+            format="DD/MM/YYYY",
+            help="È la data di inizio della disoccupazione (solitamente il giorno dopo la fine del contratto)."
         )
-        ral_2 = st.number_input(
-            label=f"Secondo Anno ({anno_corrente - 2})", 
-            min_value=0.0, 
-            value=0.0, 
-            step=100.0
-        )
-        ral_3 = st.number_input(
-            label=f"Terzo Anno ({anno_corrente - 1})", 
-            min_value=0.0, 
-            value=20000.0, 
-            step=100.0
-        )
-        ral_4 = st.number_input(
-            label=f"Quarto Anno ({anno_corrente})", 
-            min_value=0.0, 
-            value=10000.0, 
-            step=100.0,
-            help="Inserisci la retribuzione lorda percepita quest'anno fino alla fine del contratto."
-        )
-        
-        lista_ral = [ral_1, ral_2, ral_3, ral_4]
-        
+
         st.markdown("---")
 
-        # --- BLOCCO CORRETTO ---
-        # La parentesi di chiusura ')' è stata ripristinata.
-        settimane_contributive = st.slider(
-            label="Totale Settimane di Contribuzione negli Ultimi 4 Anni",
-            min_value=0, 
-            max_value=208, 
-            value=38, 
-            step=1,
-            help="Numero totale di settimane con contributi versati negli ultimi 48 mesi (minimo 13)."
-        )
-        
-        over_55 = st.checkbox(
-            label="Hai più di 55 anni?",
-            value=False,
-            help="Seleziona se hai compiuto 55 anni. Cambia l'inizio della riduzione mensile (décalage)."
-        )
+        # --- LOGICA DINAMICA PER 5 ANNI E PERIODI PARZIALI ---
+        fine_periodo = data_inizio_naspi
+        inizio_periodo = fine_periodo - relativedelta(years=4)
 
-        submitted = st.form_submit_button(
-            "Calcola Stima NASpI", 
-            use_container_width=True, 
-            type="primary"
-        )
+        st.info(f"""
+        **Periodo di riferimento per il calcolo (48 mesi):** Dal **{inizio_periodo.strftime('%d/%m/%Y')}** al **{fine_periodo.strftime('%d/%m/%Y')}**.
         
-        dati_input = {
-            "lista_ral": [ral_1, ral_2, ral_3, ral_4],
-            "settimane": settimane_contributive,
-            "over_55": over_55
-        }
+        Inserisci di seguito le retribuzioni lorde percepite in questo intervallo, suddivise per anno solare.
+        """)
 
-    return dati_input, submitted
+        anni_coinvolti = range(inizio_periodo.year, fine_periodo.year + 1)
+        lista_ral = []
+        valori_default = [0, 0, 21000, 22000, 11000] # Valori di esempio
+
+        for i, anno in enumerate(anni_coinvolti):
+            help_text = ""
+            # Gestione dinamica dell'help text per anni parziali
+            if anno == inizio_periodo.year and anno != fine_periodo.year:
+                help_text = f"ATTENZIONE: Inserire solo la retribuzione da {inizio_periodo.strftime('%B %Y')} a Dicembre {anno}."
+            elif anno == fine_periodo.year and anno != inizio_periodo.year:
+                 help_text = f"ATTENZIONE: Inserire solo la retribuzione da Gen
