@@ -3,39 +3,68 @@
 import streamlit as st
 from datetime import date
 
-def mostra_campi_input():
+def crea_form_input():
     """
-    Mostra i widget per l'inserimento dei dati (4 RAL annuali in ordine cronologico) 
-    e restituisce i valori.
+    Crea un form, mostra i widget per l'inserimento dati, e restituisce
+    i dati e lo stato del pulsante.
 
     Returns:
-        dict: Un dizionario con i valori inseriti dall'utente.
+        tuple: (dict_dati, bool_inviato)
+               - dict_dati: dizionario con i valori del form.
+               - bool_inviato: True se il form è stato inviato, altrimenti False.
     """
-    st.subheader("1. Inserisci i dati per il calcolo")
-    
-    st.write("Inserisci la **Retribuzione Annua Lorda (RAL)** per ciascuno degli ultimi quattro anni. Se un anno non è stato lavorato, lascia il valore a 0.")
-    
-    # Calcola dinamicamente gli anni di riferimento
-    anno_corrente = date.today().year
-    anno_piu_recente = anno_corrente - 1
-    
-    # Creiamo i 4 box di input per le RAL in ordine cronologico
-    ral_1 = st.number_input(
-        label=f"Primo Anno ({anno_piu_recente - 3})", 
-        min_value=0.0, 
-        value=0.0, 
-        step=100.0
-    )
-    ral_2 = st.number_input(
-        label=f"Secondo Anno ({anno_piu_recente - 2})", 
-        min_value=0.0, 
-        value=0.0, 
-        step=100.0
-    )
-    ral_3 = st.number_input(
-        label=f"Terzo Anno ({anno_piu_recente - 1})", 
-        min_value=0.0, 
-        value=0.0, 
-        step=100.0
-    )
-    ral_4
+    with st.form("calcolo_form"):
+        st.subheader("1. Inserisci i dati per il calcolo")
+        
+        st.write("Inserisci la **Retribuzione Annua Lorda (RAL)** per ciascuno degli ultimi quattro anni. Se un anno non è stato lavorato, lascia il valore a 0.")
+        
+        # Calcola dinamicamente gli anni di riferimento
+        anno_corrente = date.today().year
+        anno_piu_recente = anno_corrente - 1
+        
+        # Creiamo i 4 box di input per le RAL in ordine cronologico
+        ral_1 = st.number_input(
+            label=f"Primo Anno ({anno_piu_recente - 3})", 
+            min_value=0.0, value=0.0, step=100.0
+        )
+        ral_2 = st.number_input(
+            label=f"Secondo Anno ({anno_piu_recente - 2})", 
+            min_value=0.0, value=0.0, step=100.0
+        )
+        ral_3 = st.number_input(
+            label=f"Terzo Anno ({anno_piu_recente - 1})", 
+            min_value=0.0, value=0.0, step=100.0
+        )
+        ral_4 = st.number_input(
+            label=f"Quarto Anno (più recente) ({anno_piu_recente})", 
+            min_value=0.0, value=20000.0, step=100.0
+        )
+        
+        st.markdown("---")
+
+        settimane_contributive = st.slider(
+            label="Totale Settimane di Contribuzione negli Ultimi 4 Anni",
+            min_value=0, max_value=208, value=38, step=1,
+            help="Numero totale di settimane con contributi versati negli ultimi 48 mesi (minimo 13)."
+        )
+        
+        over_55 = st.checkbox(
+            label="Hai più di 55 anni?",
+            value=False,
+            help="Seleziona se hai compiuto 55 anni. Cambia l'inizio della riduzione mensile (décalage)."
+        )
+
+        # Pulsante di submit del form
+        submitted = st.form_submit_button(
+            "Calcola Stima NASpI", 
+            use_container_width=True, 
+            type="primary"
+        )
+        
+        dati_input = {
+            "lista_ral": [ral_1, ral_2, ral_3, ral_4],
+            "settimane": settimane_contributive,
+            "over_55": over_55
+        }
+
+    return dati_input, submitted
