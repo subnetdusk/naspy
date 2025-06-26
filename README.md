@@ -5,7 +5,7 @@ Questo progetto, chiamato **Naspy**, è un'applicazione web realizzata con [Stre
 
 ##  Come Iniziare
 
-Per eseguire questo progetto in locale, segui questi passaggi:
+Puoi usare la [Webapp Streamlit](https://calcolatore-naspi.streamlit.app/) oppure eseguire questo progetto in locale, in questo caso segui questi passaggi:
 
 1.  **Clona o Scarica il Repository**
     ```bash
