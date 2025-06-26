@@ -3,7 +3,7 @@
 import streamlit as st
 import pandas as pd
 import plotly.express as px
-import plotly.graph_objects as go # --- NUOVA IMPORTAZIONE ---
+import plotly.graph_objects as go
 from datetime import date
 from dateutil.relativedelta import relativedelta
 
@@ -135,8 +135,6 @@ with col2:
             
             st.markdown("---")
             
-            # --- SEZIONE DATI E GRAFICO MODIFICATA ---
-            
             piano_lordo = calcola_piano_decalage(
                 risultato["importo_mensile_lordo"],
                 risultato["durata_mesi"],
@@ -154,10 +152,8 @@ with col2:
             
             st.write("**Andamento dell'indennità nel tempo (Lordo vs. Netto)**")
             
-            # 1. Creiamo una figura vuota con graph_objects
             fig = go.Figure()
 
-            # 2. Aggiungiamo la traccia per le barre LORDE (blu, sotto)
             fig.add_trace(go.Bar(
                 x=df_wide['Mese'],
                 y=df_wide['Importo Lordo (€)'],
@@ -165,10 +161,10 @@ with col2:
                 marker_color='royalblue',
                 text=df_wide['Importo Lordo (€)'],
                 texttemplate='%{text:.2f}',
-                textposition='outside' # Mostra il valore lordo fuori dalla barra
+                textposition='outside',
+                textfont=dict(color='black') # Rendiamo il testo nero
             ))
 
-            # 3. Aggiungiamo la traccia per le barre NETTE (arancioni, sopra)
             fig.add_trace(go.Bar(
                 x=df_wide['Mese'],
                 y=df_wide[f"Importo Netto (stima -{tassazione:.0%})"],
@@ -176,16 +172,23 @@ with col2:
                 marker_color='darkorange',
                 text=df_wide[f"Importo Netto (stima -{tassazione:.0%})"],
                 texttemplate='%{text:.2f}',
-                textposition='inside', # Mostra il valore netto dentro la barra
+                textposition='inside',
                 insidetextanchor='middle'
             ))
 
-            # 4. Impostiamo la modalità a 'overlay'
+            # --- MODIFICA ESEGUITA QUI ---
+            # 1. Calcoliamo il valore massimo sull'asse Y
+            max_y_value = df_wide['Importo Lordo (€)'].max()
+            # 2. Aggiungiamo un 15% di "aria" per far spazio all'etichetta
+            y_axis_upper_limit = max_y_value * 1.15 
+
             fig.update_layout(
                 barmode='overlay',
                 xaxis_title='Mese',
                 yaxis_title='Importo (€)',
-                legend_title_text='Tipo Importo'
+                legend_title_text='Tipo Importo',
+                # 3. Applichiamo il nuovo limite massimo all'asse Y
+                yaxis=dict(range=[0, y_axis_upper_limit]) 
             )
             
             st.plotly_chart(fig, use_container_width=True)
