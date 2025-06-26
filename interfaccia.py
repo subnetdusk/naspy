@@ -19,7 +19,7 @@ def crea_form_input():
         st.write("""
         Inserisci la **Retribuzione Annua Lorda (RAL)** per ciascuno degli ultimi quattro anni.
         - Per l'**anno in corso**, inserisci la retribuzione percepita fino alla data di fine contratto.
-        - Se un anno non è stato lavorato, lascia il valore a 0.
+        - Se durante un anno non hai lavorato, lascia il valore a 0.
         """)
         
         anno_corrente = date.today().year
