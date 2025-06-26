@@ -2,7 +2,7 @@
 
 import streamlit as st
 import pandas as pd
-from interfaccia import mostra_campi_input
+from interfaccia import crea_form_input
 from calcolo import calcola_naspi, calcola_piano_decalage
 from testi import get_introduzione, get_guida_input, get_spiegazione_risultati
 
@@ -23,14 +23,10 @@ col1, col2 = st.columns(spec=[1.5, 2], gap="large")
 
 # --- COLONNA 1: INPUT E GUIDE ---
 with col1:
-    with st.form("calcolo_form"):
-        user_input = mostra_campi_input()
-        submitted = st.form_submit_button(
-            "Calcola Stima NASpI", 
-            use_container_width=True, 
-            type="primary"
-        )
+    # La funzione crea il form e restituisce i dati e lo stato di invio
+    user_input, submitted = crea_form_input()
 
+    # Le guide rimangono qui
     st.subheader("Approfondimenti")
     with st.expander("Guida alla compilazione dei dati"):
         st.markdown(get_guida_input())
@@ -47,15 +43,14 @@ with col2:
     st.subheader("2. Visualizza il Risultato")
 
     if submitted:
-        # Passiamo la lista delle RAL e le settimane alla funzione di calcolo
+        # Esegui il calcolo solo dopo aver premuto il pulsante
         risultato = calcola_naspi(user_input["lista_ral"], user_input["settimane"])
         
         if not risultato["requisiti_soddisfatti"]:
             st.error(f"**Requisiti non soddisfatti.**\n\n{risultato['messaggio_errore']}")
         else:
             st.success("**Stima calcolata con successo!**")
-
-            # MOSTRA LA RETRIBUZIONE DI RIFERIMENTO CALCOLATA
+            
             st.metric(
                 label="Retribuzione Mensile di Riferimento (calcolata)",
                 value=f"€ {risultato['retribuzione_riferimento_calcolata']:.2f}",
@@ -63,7 +58,6 @@ with col2:
             )
             st.markdown("---")
             
-            # Visualizzazione metriche principali
             m1, m2 = st.columns(2)
             m1.metric(
                 label="Indennità Mensile Lorda Iniziale",
@@ -76,7 +70,6 @@ with col2:
             
             st.markdown("---")
             
-            # Calcolo e visualizzazione piano di ammortamento (décalage)
             piano_ammortamento = calcola_piano_decalage(
                 risultato["importo_mensile_lordo"],
                 risultato["durata_mesi"],
@@ -93,7 +86,6 @@ with col2:
             
             with st.expander("Mostra tabella dettagliata del piano di erogazione"):
                 st.dataframe(df_piano, hide_index=True, use_container_width=True)
-
     else:
         st.info("Compila i dati nel modulo a sinistra e premi il pulsante 'Calcola Stima NASpI' per visualizzare il risultato.")
 
