@@ -27,28 +27,29 @@ col1, col2 = st.columns(spec=[1.5, 2], gap="large")
 
 # --- COLONNA 1: INPUT E GUIDE ---
 with col1:
-    # --- IL FORM E TUTTI I SUOI INPUT SONO ORA QUI, DIRETTAMENTE IN APP.PY ---
+    st.subheader("1. Inserisci i dati per il calcolo")
+
+    # --- SPOSTATO QUI FUORI DAL FORM ---
+    # Questo input ora è reattivo e aggiorna l'interfaccia a ogni modifica.
+    data_inizio_naspi = st.date_input(
+        label="Seleziona la data di decorrenza della NASpI",
+        value=date.today(),
+        format="DD/MM/YYYY",
+        help="È la data di inizio della disoccupazione.",
+    )
+    # Calcoliamo il periodo qui, in modo che sia disponibile per il form sottostante
+    fine_periodo = data_inizio_naspi
+    inizio_periodo = fine_periodo - relativedelta(years=4)
+    
+    # --- IL FORM INIZIA DOPO L'INPUT DELLA DATA ---
     with st.form("calcolo_form"):
-        st.subheader("1. Inserisci i dati per il calcolo")
-
-        data_inizio_naspi = st.date_input(
-            label="Seleziona la data di decorrenza della NASpI",
-            value=date.today(),
-            format="DD/MM/YYYY",
-            help="È la data di inizio della disoccupazione.",
-        )
-
-        st.markdown("---")
-
-        fine_periodo = data_inizio_naspi
-        inizio_periodo = fine_periodo - relativedelta(years=4)
-        
+        # Il testo informativo e gli input RAL ora si aggiornano dinamicamente
         start_str = inizio_periodo.strftime('%d/%m/%Y')
         end_str = fine_periodo.strftime('%d/%m/%Y')
 
         st.info(f"Periodo di riferimento (48 mesi): Dal **{start_str}** al **{end_str}**.")
         st.write("Inserisci le retribuzioni lorde per ogni anno solare in questo intervallo.")
-
+        
         anni_coinvolti = list(range(inizio_periodo.year, fine_periodo.year + 1))
         lista_ral = []
         valori_default = [0.0, 0.0, 21000.0, 22000.0, 11000.0]
@@ -69,6 +70,7 @@ with col1:
                 value=default_val,
                 step=100.0,
                 help=help_text,
+                key=f"ral_{anno}" # Aggiungiamo una key unica per stabilità
             )
             lista_ral.append(ral_input)
 
