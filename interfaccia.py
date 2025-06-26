@@ -24,7 +24,6 @@ def crea_form_input():
         
         anno_corrente = date.today().year
         
-        # Creiamo i 4 box di input per le RAL in ordine cronologico
         ral_1 = st.number_input(
             label=f"Primo Anno ({anno_corrente - 3})", 
             min_value=0.0, 
@@ -55,9 +54,33 @@ def crea_form_input():
         
         st.markdown("---")
 
+        # --- BLOCCO CORRETTO ---
+        # La parentesi di chiusura ')' è stata ripristinata.
         settimane_contributive = st.slider(
             label="Totale Settimane di Contribuzione negli Ultimi 4 Anni",
             min_value=0, 
             max_value=208, 
             value=38, 
-            step=1
+            step=1,
+            help="Numero totale di settimane con contributi versati negli ultimi 48 mesi (minimo 13)."
+        )
+        
+        over_55 = st.checkbox(
+            label="Hai più di 55 anni?",
+            value=False,
+            help="Seleziona se hai compiuto 55 anni. Cambia l'inizio della riduzione mensile (décalage)."
+        )
+
+        submitted = st.form_submit_button(
+            "Calcola Stima NASpI", 
+            use_container_width=True, 
+            type="primary"
+        )
+        
+        dati_input = {
+            "lista_ral": [ral_1, ral_2, ral_3, ral_4],
+            "settimane": settimane_contributive,
+            "over_55": over_55
+        }
+
+    return dati_input, submitted
